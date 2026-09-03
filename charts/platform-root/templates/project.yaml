@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: talay-apps
+  namespace: {{ .Release.Namespace }}
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Talay application workloads
+  sourceRepos:
+    - {{ required "environmentsRepo.url is required" .Values.environmentsRepo.url | quote }}
+    - {{ required "chartsRepo.url is required" .Values.chartsRepo.url | quote }}
+  destinations:
+    - namespace: "*"
+      server: https://kubernetes.default.svc
+  orphanedResources:
+    warn: true

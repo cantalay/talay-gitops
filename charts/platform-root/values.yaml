@@ -1,0 +1,6 @@
+environmentsRepo:
+  url: https://github.com/cantalay/talay-environments.git
+  revision: main
+chartsRepo:
+  url: https://github.com/cantalay/talay-helm-charts.git
+  revision: main

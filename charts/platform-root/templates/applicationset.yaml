@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: talay-applications
+  namespace: {{ .Release.Namespace }}
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - git:
+        repoURL: {{ .Values.environmentsRepo.url | quote }}
+        revision: {{ .Values.environmentsRepo.revision | quote }}
+        files:
+          - path: apps/*/*/app.yaml
+  template:
+    metadata:
+      name: '{{ "{{ .name }}-{{ .environment }}" }}'
+      labels:
+        talay.io/environment: '{{ "{{ .environment }}" }}'
+        talay.io/application: '{{ "{{ .name }}" }}'
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: talay-apps
+      sources:
+        - repoURL: {{ .Values.chartsRepo.url | quote }}
+          targetRevision: {{ .Values.chartsRepo.revision | quote }}
+          path: '{{ "{{ .chartPath }}" }}'
+          helm:
+            releaseName: '{{ "{{ .name }}" }}'
+            valueFiles:
+              - '$values/{{ "{{ .valuesFile }}" }}'
+        - repoURL: {{ .Values.environmentsRepo.url | quote }}
+          targetRevision: {{ .Values.environmentsRepo.revision | quote }}
+          ref: values
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{ "{{ .namespace }}" }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+          allowEmpty: false
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+          - ApplyOutOfSyncOnly=true
+          - PruneLast=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
