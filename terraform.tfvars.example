@@ -1,4 +1,5 @@
 argocd_domain        = "argocd.cantalay.com"
-keycloak_issuer      = "https://auth.cantalay.com/realms/talay"
+oidc_enabled         = false
+# keycloak_issuer    = "https://auth.cantalay.com/realms/talay"
 environments_repo_url = "https://github.com/cantalay/talay-environments.git"
 charts_repo_url      = "https://github.com/cantalay/talay-helm-charts.git"

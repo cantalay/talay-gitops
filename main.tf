@@ -15,9 +15,10 @@ resource "helm_release" "argocd" {
       priorityClassName = "talay-platform-critical"
     }
     configs = {
-      cm = {
+      cm = merge({
         "admin.enabled" = true
         url             = "https://${var.argocd_domain}"
+        }, var.oidc_enabled ? {
         "oidc.config" = yamlencode({
           name                     = "Keycloak"
           issuer                   = var.keycloak_issuer
@@ -25,7 +26,7 @@ resource "helm_release" "argocd" {
           enablePKCEAuthentication = true
           requestedScopes          = ["openid", "profile", "email"]
         })
-      }
+      } : {})
       params = {
         "server.insecure" = true
       }
@@ -34,6 +35,9 @@ resource "helm_release" "argocd" {
         "policy.csv"     = "g, talay-platform-admins, role:admin"
         scopes           = "[groups]"
       }
+    }
+    dex = {
+      enabled = false
     }
     controller = {
       replicas = 1

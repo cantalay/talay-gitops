@@ -4,4 +4,4 @@ Argo CD'yi kurar ve tek bir root `ApplicationSet` ile `talay-environments` için
 
 State Git'te değildir: Terraform state `terraform-states` namespace'indeki Kubernetes Secret'ındadır, Argo CD'nin canlı cache/çalışma durumu cluster'dadır, uygulamaların istenen durumu ise `talay-environments` Git reposundadır. Sunucu kaybolduğunda cluster bootstrap state'i ve şifreli Kubernetes state yedeği kullanılarak cluster yeniden kurulup bu repo bootstrap edilir; Argo CD desired state'i tekrar uygular.
 
-OIDC Keycloak'a public PKCE istemcisi `talay-argocd` ile bağlanacak şekilde hazırlanmıştır. Realm grubu `talay-platform-admins`, Argo CD admin rolüne eşlenir. İlk doğrulama bitene kadar yerel admin açık kalır; OIDC testinden sonra `configs.cm.admin.enabled=false` yapılmalıdır.
+OIDC isteğe bağlıdır ve geçici operasyon görünürlüğü için varsayılan olarak kapalıdır; Dex de kurulmaz. `oidc_enabled=true` yapıldığında Keycloak public PKCE istemcisi `talay-argocd` kullanılır ve `talay-platform-admins` grubu Argo CD admin rolüne eşlenir. Yerel admin açık kalır; OIDC testinden sonra `configs.cm.admin.enabled=false` yapılmalıdır.
