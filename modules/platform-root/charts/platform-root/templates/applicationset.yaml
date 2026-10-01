@@ -12,7 +12,7 @@ spec:
         repoURL: {{ .Values.environmentsRepo.url | quote }}
         revision: {{ .Values.environmentsRepo.revision | quote }}
         files:
-          - path: apps/*/*/app.yaml
+          - path: apps/*/*/*/application.yaml
   template:
     metadata:
       name: '{{ "{{ .name }}-{{ .environment }}" }}'
@@ -34,6 +34,9 @@ spec:
         - repoURL: {{ .Values.environmentsRepo.url | quote }}
           targetRevision: {{ .Values.environmentsRepo.revision | quote }}
           ref: values
+        - repoURL: {{ .Values.environmentsRepo.url | quote }}
+          targetRevision: {{ .Values.environmentsRepo.revision | quote }}
+          path: '{{ "{{ .manifestsPath }}" }}'
       destination:
         server: https://kubernetes.default.svc
         namespace: '{{ "{{ .namespace }}" }}'

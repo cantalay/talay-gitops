@@ -1,156 +1,27 @@
-resource "helm_release" "argocd" {
-  name       = "argocd"
-  namespace  = "gitops"
-  repository = "https://argoproj.github.io/argo-helm"
-  chart      = "argo-cd"
-  version    = "10.7.1"
+module "argocd" {
+  source = "./modules/argocd"
 
-  atomic  = true
-  wait    = true
-  timeout = 1200
-
-  values = [yamlencode({
-    global = {
-      domain            = var.argocd_domain
-      priorityClassName = "talay-platform-critical"
-    }
-    configs = {
-      cm = merge({
-        "admin.enabled" = true
-        url             = "https://${var.argocd_domain}"
-        }, var.oidc_enabled ? {
-        "oidc.config" = yamlencode({
-          name                     = "Keycloak"
-          issuer                   = var.keycloak_issuer
-          clientID                 = "talay-argocd"
-          enablePKCEAuthentication = true
-          requestedScopes          = ["openid", "profile", "email"]
-        })
-      } : {})
-      params = {
-        "server.insecure" = true
-      }
-      rbac = {
-        "policy.default" = "role:readonly"
-        "policy.csv"     = "g, talay-platform-admins, role:admin"
-        scopes           = "[groups]"
-      }
-    }
-    dex = {
-      enabled = false
-    }
-    controller = {
-      replicas = 1
-      metrics = {
-        enabled = true
-        serviceMonitor = {
-          enabled = true
-        }
-      }
-      resources = {
-        requests = {
-          cpu    = "100m"
-          memory = "256Mi"
-        }
-        limits = {
-          memory = "768Mi"
-        }
-      }
-    }
-    server = {
-      replicas = 1
-      ingress = {
-        enabled          = true
-        controller       = "generic"
-        ingressClassName = "traefik"
-        hostname         = var.argocd_domain
-        tls              = true
-        annotations = {
-          "cert-manager.io/cluster-issuer" = "letsencrypt"
-        }
-      }
-      metrics = {
-        enabled = true
-        serviceMonitor = {
-          enabled = true
-        }
-      }
-      resources = {
-        requests = {
-          cpu    = "50m"
-          memory = "128Mi"
-        }
-        limits = {
-          memory = "384Mi"
-        }
-      }
-    }
-    repoServer = {
-      replicas = 1
-      metrics = {
-        enabled = true
-        serviceMonitor = {
-          enabled = true
-        }
-      }
-      resources = {
-        requests = {
-          cpu    = "50m"
-          memory = "128Mi"
-        }
-        limits = {
-          memory = "512Mi"
-        }
-      }
-    }
-    applicationSet = {
-      replicas = 1
-      metrics = {
-        enabled = true
-        serviceMonitor = {
-          enabled = true
-        }
-      }
-    }
-    redis = {
-      metrics = {
-        enabled = true
-        serviceMonitor = {
-          enabled = true
-        }
-      }
-    }
-    notifications = {
-      enabled = true
-      metrics = {
-        enabled = true
-        serviceMonitor = {
-          enabled = true
-        }
-      }
-    }
-  })]
+  domain          = var.argocd_domain
+  oidc_enabled    = var.oidc_enabled
+  keycloak_issuer = var.keycloak_issuer
 }
 
-resource "helm_release" "platform_root" {
-  name      = "talay-platform-root"
-  namespace = "gitops"
-  chart     = "${path.module}/charts/platform-root"
+module "platform_root" {
+  source = "./modules/platform-root"
 
-  atomic  = true
-  wait    = true
-  timeout = 300
+  environments_repo_url = var.environments_repo_url
+  charts_repo_url       = var.charts_repo_url
+  git_revision          = var.git_revision
 
-  values = [yamlencode({
-    environmentsRepo = {
-      url      = var.environments_repo_url
-      revision = var.git_revision
-    }
-    chartsRepo = {
-      url      = var.charts_repo_url
-      revision = var.git_revision
-    }
-  })]
+  depends_on = [module.argocd]
+}
 
-  depends_on = [helm_release.argocd]
+moved {
+  from = helm_release.argocd
+  to   = module.argocd.helm_release.argocd
+}
+
+moved {
+  from = helm_release.platform_root
+  to   = module.platform_root.helm_release.platform_root
 }

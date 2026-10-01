@@ -1,7 +1,7 @@
 output "argocd_url" {
-  value = "https://${var.argocd_domain}"
+  value = module.argocd.url
 }
 
 output "application_set" {
-  value = "talay-applications"
+  value = module.platform_root.application_set
 }
