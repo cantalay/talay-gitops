@@ -39,7 +39,7 @@ resource "helm_release" "argocd" {
       replicas = 1
       metrics  = { enabled = true, serviceMonitor = { enabled = true } }
       resources = {
-        requests = { cpu = "100m", memory = "256Mi" }
+        requests = { cpu = "50m", memory = "256Mi" }
         limits   = { memory = "768Mi" }
       }
     }
@@ -55,7 +55,7 @@ resource "helm_release" "argocd" {
       }
       metrics = { enabled = true, serviceMonitor = { enabled = true } }
       resources = {
-        requests = { cpu = "50m", memory = "128Mi" }
+        requests = { cpu = "25m", memory = "128Mi" }
         limits   = { memory = "384Mi" }
       }
     }
@@ -82,7 +82,7 @@ resource "helm_release" "argocd" {
         timeoutSeconds   = 5
       }
       resources = {
-        requests = { cpu = "50m", memory = "128Mi" }
+        requests = { cpu = "25m", memory = "128Mi" }
         limits   = { memory = "512Mi" }
       }
     }
