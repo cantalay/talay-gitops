@@ -62,6 +62,25 @@ resource "helm_release" "argocd" {
     repoServer = {
       replicas = 1
       metrics  = { enabled = true, serviceMonitor = { enabled = true } }
+      startupProbe = {
+        enabled             = true
+        failureThreshold    = 180
+        initialDelaySeconds = 10
+        periodSeconds       = 5
+        timeoutSeconds      = 5
+      }
+      readinessProbe = {
+        enabled          = true
+        failureThreshold = 6
+        periodSeconds    = 10
+        timeoutSeconds   = 5
+      }
+      livenessProbe = {
+        enabled          = true
+        failureThreshold = 6
+        periodSeconds    = 10
+        timeoutSeconds   = 5
+      }
       resources = {
         requests = { cpu = "50m", memory = "128Mi" }
         limits   = { memory = "512Mi" }
